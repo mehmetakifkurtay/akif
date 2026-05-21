@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NASDAQ Trading Bot Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container-fluid dashboard">
+        <!-- SIDEBAR -->
+        <nav class="sidebar">
+            <div class="sidebar-header">
+                <h3><i class="fas fa-robot"></i> NASDAQ BOT</h3>
+            </div>
+            <hr>
+            <div class="control-panel">
+                <h5>🎮 KONTROL</h5>
+                
+                <!-- WebSocket Durumu -->
+                <div class="status-box" id="ws-status">
+                    <div class="status-indicator connecting"></div>
+                    <span>WebSocket Bağlanıyor...</span>
+                </div>
+                
+                <button class="btn btn-danger btn-sm w-100 mb-2" id="kill-switch-btn">
+                    <i class="fas fa-power-off"></i> KILL SWITCH
+                </button>
+                
+                <button class="btn btn-warning btn-sm w-100 mb-2" id="reset-btn">
+                    <i class="fas fa-redo"></i> RESET
+                </button>
+                
+                <div class="form-check form-switch mb-3">
+                    <input class="form-check-input" type="checkbox" id="trading-toggle" checked>
+                    <label class="form-check-label" for="trading-toggle">
+                        Bot Aktif
+                    </label>
+                </div>
+                
+                <hr>
+                <small class="text-muted">
+                    <div>Mod: <span id="mode-badge">PAPER</span></div>
+                    <div>Son güncelleme: <span id="last-update">--:--:--</span></div>
+                </small>
+            </div>
+        </nav>
+
+        <!-- MAIN CONTENT -->
+        <main class="main-content">
+            <!-- Header -->
+            <header class="header">
+                <h1><i class="fas fa-chart-line"></i> NASDAQ TRADING BOT DASHBOARD</h1>
+                <div class="header-info">
+                    <span id="current-time"></span>
+                </div>
+            </header>
+
+            <!-- KPI Cards -->
+            <div class="kpi-cards">
+                <div class="card kpi-card">
+                    <div class="card-body">
+                        <h6>Net PnL</h6>
+                        <div class="metric-value" id="pnl-value">$0.00</div>
+                        <div class="metric-label" id="pnl-pct">+0.00%</div>
+                    </div>
+                </div>
+
+                <div class="card kpi-card">
+                    <div class="card-body">
+                        <h6>Portföy Değeri</h6>
+                        <div class="metric-value" id="portfolio-value">$100,000.00</div>
+                        <div class="metric-label" id="portfolio-label">Toplam</div>
+                    </div>
+                </div>
+
+                <div class="card kpi-card">
+                    <div class="card-body">
+                        <h6>Açık Pozisyonlar</h6>
+                        <div class="metric-value" id="position-count">0</div>
+                        <div class="metric-label">Adet</div>
+                    </div>
+                </div>
+
+                <div class="card kpi-card">
+                    <div class="card-body">
+                        <h6>VIX</h6>
+                        <div class="metric-value" id="vix-value">--</div>
+                        <div class="metric-label" id="vix-label">Normal</div>
+                    </div>
+                </div>
+
+                <div class="card kpi-card">
+                    <div class="card-body">
+                        <h6>Nakit</h6>
+                        <div class="metric-value" id="cash-value">$100,000.00</div>
+                        <div class="metric-label">Mevcut</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tabs -->
+            <ul class="nav nav-tabs" role="tablist">
+                <li class="nav-item">
+                    <a class="nav-link active" data-bs-toggle="tab" href="#positions">Pozisyonlar</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" data-bs-toggle="tab" href="#heatmap">Sıcaklık Haritası</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" data-bs-toggle="tab" href="#prices">Canlı Fiyatlar</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" data-bs-toggle="tab" href="#alerts">Uyarılar</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" data-bs-toggle="tab" href="#logs">Loglar</a>
+                </li>
+            </ul>
+
+            <!-- Tab Content -->
+            <div class="tab-content">
+                <!-- Pozisyonlar -->
+                <div id="positions" class="tab-pane fade show active">
+                    <div class="table-responsive mt-3">
+                        <table class="table table-dark table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Sembol</th>
+                                    <th>Miktar</th>
+                                    <th>Giriş Fiyatı</th>
+                                    <th>Güncel Fiyat</th>
+                                    <th>PnL</th>
+                                    <th>PnL %</th>
+                                </tr>
+                            </thead>
+                            <tbody id="positions-table">
+                                <tr>
+                                    <td colspan="6" class="text-center text-muted">Açık pozisyon yok</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Sıcaklık Haritası -->
+                <div id="heatmap" class="tab-pane fade">
+                    <div class="heatmap-grid mt-3" id="heatmap-grid">
+                        <div class="text-center text-muted">Yükleniyor...</div>
+                    </div>
+                </div>
+
+                <!-- Canlı Fiyatlar -->
+                <div id="prices" class="tab-pane fade">
+                    <div class="prices-grid mt-3" id="prices-grid">
+                        <div class="text-center text-muted">Yükleniyor...</div>
+                    </div>
+                </div>
+
+                <!-- Uyarılar -->
+                <div id="alerts" class="tab-pane fade">
+                    <div class="alerts-container mt-3" id="alerts-container">
+                        <div class="text-center text-muted">Uyarı yok</div>
+                    </div>
+                </div>
+
+                <!-- Loglar -->
+                <div id="logs" class="tab-pane fade">
+                    <div class="logs-container mt-3">
+                        <pre id="logs-output" class="logs-output">Loglar yükleniyor...</pre>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Alert Toast -->
+    <div id="toast-container" class="toast-container position-fixed top-0 end-0 p-3">
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>
